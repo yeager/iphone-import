@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=iPhone Import
+Name[sv]=iPhone-import
+Comment=Browse an iPhone in Files and import photos and videos
+Comment[sv]=Visa en iPhone i Filer och importera bilder och videor
+Exec=iphone-import
+Icon=phone-symbolic
+Terminal=false
+Categories=GTK;Utility;

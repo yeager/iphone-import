@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Swedish translations for GNOME Cloud Sync.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the GNOME Cloud Sync
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GNOME Cloud Sync 0.4.1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-18 07:45+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: sv\n"
+"Language-Team: sv <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "Import from iPhone"
+msgstr "Importera från iPhone"
+
+msgid ""
+"Connect and unlock your iPhone. Tap Trust if prompted. Import copies "
+"photos and videos and leaves originals on your iPhone."
+msgstr ""
+"Anslut och lås upp din iPhone. Tryck på Lita på om du får frågan. "
+"Importen kopierar bilder och videor och lämnar originalen kvar på din "
+"iPhone."
+
+msgid "No iPhone detected. Try reconnecting it while it is unlocked."
+msgstr "Ingen iPhone hittades. Prova att ansluta den igen medan den är upplåst."
+
+msgid "Choose destination"
+msgstr "Välj målmapp"
+
+msgid "Import photos and videos"
+msgstr "Importera bilder och videor"
+
+msgid "Cancel import"
+msgstr "Avbryt import"
+
+msgid "Open destination"
+msgstr "Öppna målmappen"
+
+msgid "Choose a local folder for imported files."
+msgstr "Välj en lokal mapp för importerade filer."
+
+msgid "Could not select the destination folder."
+msgstr "Det gick inte att välja målmappen."
+
+msgid "Connecting to iPhone…"
+msgstr "Ansluter till iPhone…"
+
+#, python-brace-format
+msgid "Imported: {imported} · Duplicates skipped: {skipped}"
+msgstr "Importerade: {imported} · Överhoppade dubbletter: {skipped}"
+
+msgid "Import cancelled."
+msgstr "Importen avbröts."
+
+msgid "Import stopped. Check the iPhone connection and destination."
+msgstr "Importen stoppades. Kontrollera anslutningen till iPhone och målmappen."
+
+msgid "Could not open the destination folder."
+msgstr "Det gick inte att öppna målmappen."
+
+
+msgid "Browse iPhone in Files"
+msgstr "Visa iPhone i Filer"

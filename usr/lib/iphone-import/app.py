@@ -23,6 +23,30 @@ MEDIA = {".heic", ".heif", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff",
 CHUNK_SIZE = 1024 * 1024
 
 
+def list_media_devices(monitor):
+    """Find AFC media roots, including phones advertised only as Documents."""
+    devices = {}
+
+    def add(root, name):
+        if root is None or root.get_uri_scheme() != "afc":
+            return
+        uri = urlsplit(root.get_uri())
+        if not uri.netloc or uri.port not in (None, 1, 3):
+            return
+        # AFC looks up the USB device ID with its original casing.
+        device_id = uri.netloc.rsplit(":", 1)[0] if uri.port is not None else uri.netloc
+        key = device_id.casefold()
+        media = uri.port in (None, 1)
+        if key not in devices or media:
+            devices[key] = name, f"afc://{device_id}/"
+
+    for volume in monitor.get_volumes():
+        add(volume.get_activation_root(), volume.get_name())
+    for mount in monitor.get_mounts():
+        add(mount.get_root(), mount.get_name())
+    return sorted(devices.values(), key=lambda device: (device[0].casefold(), device[1]))
+
+
 def media_files(directory, cancellable):
     entries = directory.enumerate_children(
         "standard::name,standard::type", Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
@@ -97,6 +121,8 @@ class ImportWindow(Gtk.ApplicationWindow):
                          default_width=510)
         self.monitor = Gio.VolumeMonitor.get()
         self.devices = []
+        self.auto_mount_attempts = set()
+        self.auto_mount_source = None
         self.destination = None
         self.cancellable = None
         panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -123,8 +149,10 @@ class ImportWindow(Gtk.ApplicationWindow):
         self.open = self.button(panel, translate("Open destination"), self.open_destination)
         self.status = Gtk.Label(xalign=0, wrap=True, selectable=True)
         panel.append(self.status)
-        for signal in ("volume-added", "volume-removed", "volume-changed"):
+        for signal in ("volume-added", "volume-removed", "volume-changed",
+                       "mount-added", "mount-removed", "mount-changed"):
             self.monitor.connect_object(signal, self.refresh_devices, self)
+        self.device.connect("notify::selected", self.schedule_auto_mount)
         self.connect("close-request", self.close_window)
         self.refresh_devices()
 
@@ -138,12 +166,8 @@ class ImportWindow(Gtk.ApplicationWindow):
     def refresh_devices(self, *_):
         selected = self.device.get_selected()
         previous = self.devices[selected][1] if selected < len(self.devices) else None
-        devices = []
-        for volume in self.monitor.get_volumes():
-            root = volume.get_activation_root()
-            if root and root.get_uri_scheme() == "afc" and urlsplit(root.get_uri()).port is None:
-                devices.append((volume.get_name(), root.get_uri()))
-        devices.sort()
+        devices = list_media_devices(self.monitor)
+        self.auto_mount_attempts.intersection_update(uri for _, uri in devices)
         if devices != self.devices:
             self.devices = devices
             self.device.set_model(Gtk.StringList.new([name for name, _ in devices]))
@@ -153,6 +177,36 @@ class ImportWindow(Gtk.ApplicationWindow):
         self.device.set_visible(bool(devices))
         self.no_device.set_visible(not devices)
         self.update_buttons()
+        self.schedule_auto_mount()
+
+    def schedule_auto_mount(self, *_):
+        if self.auto_mount_source is None:
+            self.auto_mount_source = GLib.idle_add(self.auto_mount)
+
+    def auto_mount(self):
+        self.auto_mount_source = None
+        selected = self.device.get_selected()
+        if self.cancellable is not None or selected >= len(self.devices):
+            return
+        uri = self.devices[selected][1]
+        if uri in self.auto_mount_attempts:
+            return
+        self.auto_mount_attempts.add(uri)
+        self.connect_device(self.auto_mounted, interactive=False)
+
+    def auto_mounted(self, source, result):
+        try:
+            self.mount_device(source, result)
+            self.status.set_text("")
+        except GLib.Error as error:
+            if self.cancellable.is_cancelled():
+                self.status.set_text("")
+            else:
+                self.status.set_text(error.message)
+        finally:
+            self.cancellable = None
+            self.update_buttons()
+            self.schedule_auto_mount()
 
     def update_buttons(self, *_):
         busy = self.cancellable is not None
@@ -188,12 +242,16 @@ class ImportWindow(Gtk.ApplicationWindow):
     def start_import(self, *_):
         self.connect_device(self.import_mounted)
 
-    def connect_device(self, callback):
-        source = Gio.File.new_for_uri(self.devices[self.device.get_selected()][1])
+    def connect_device(self, callback, *, interactive=True):
+        selected = self.device.get_selected()
+        if self.cancellable is not None or selected >= len(self.devices):
+            return
+        source = Gio.File.new_for_uri(self.devices[selected][1])
         self.cancellable = Gio.Cancellable()
         self.update_buttons()
         self.status.set_text(translate("Connecting to iPhone…"))
-        source.mount_enclosing_volume(Gio.MountMountFlags.NONE, Gtk.MountOperation.new(self),
+        operation = Gtk.MountOperation.new(self) if interactive else None
+        source.mount_enclosing_volume(Gio.MountMountFlags.NONE, operation,
                                       self.cancellable, callback)
 
     def mount_device(self, source, result):
@@ -206,7 +264,8 @@ class ImportWindow(Gtk.ApplicationWindow):
     def browse_mounted(self, source, result):
         try:
             self.mount_device(source, result)
-            Gio.AppInfo.launch_default_for_uri(source.get_uri(), self.cancellable)
+            if not self.cancellable.is_cancelled():
+                Gio.AppInfo.launch_default_for_uri(source.get_uri(), None)
             self.status.set_text("")
         except GLib.Error as error:
             if self.cancellable.is_cancelled():
@@ -267,6 +326,9 @@ class ImportWindow(Gtk.ApplicationWindow):
         if self.cancellable:
             self.cancel_import()
             return True
+        if self.auto_mount_source is not None:
+            GLib.source_remove(self.auto_mount_source)
+            self.auto_mount_source = None
         return False
 
     def open_destination(self, *_):

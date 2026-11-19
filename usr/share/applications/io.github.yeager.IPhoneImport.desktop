@@ -5,6 +5,6 @@ Name[sv]=iPhone-import
 Comment=Browse an iPhone in Files and import photos and videos
 Comment[sv]=Visa en iPhone i Filer och importera bilder och videor
 Exec=iphone-import
-Icon=phone-symbolic
+Icon=io.github.yeager.IPhoneImport
 Terminal=false
 Categories=GTK;Utility;

@@ -1,5 +1,5 @@
 Package: iphone-import
-Version: 0.1.1
+Version: 0.1.2
 Architecture: all
 Maintainer: GNOME Cloud Sync Prototype <prototype@localhost>
 Depends: python3, python3-gi, gir1.2-gtk-4.0 (>= 4.10), gvfs-backends, usbmuxd

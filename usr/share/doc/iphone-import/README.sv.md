@@ -6,4 +6,4 @@ För att kopiera bilder och videor från telefonens DCIM-mapp, välj en lokal m�
 
 ## Bygg och installera
 
-Med `gettext` och `dpkg-deb` tillgängliga, kör `./build-package.sh .` och sedan `sudo apt install ./iphone-import_0.1.1_all.deb`.
+Med `gettext` och `dpkg-deb` tillgängliga, kör `./build-package.sh .` och sedan `sudo apt install ./iphone-import_0.1.2_all.deb`.

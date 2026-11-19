@@ -6,4 +6,4 @@ To copy photos and videos from DCIM, choose a local destination in **iPhone Impo
 
 ## Build and install
 
-With `gettext` and `dpkg-deb` available, run `./build-package.sh .` and then `sudo apt install ./iphone-import_0.1.1_all.deb`.
+With `gettext` and `dpkg-deb` available, run `./build-package.sh .` and then `sudo apt install ./iphone-import_0.1.2_all.deb`.
